@@ -20,7 +20,7 @@ LICENSE file.
 Kyotocabinet
 Using kyotocabinet-java wrapper.
 
-### 1. Set Up YCSB
+### Set Up YCSB
 
 Clone the YCSB git repository and compile:
 
@@ -30,26 +30,26 @@ Clone the YCSB git repository and compile:
 
 Or,
 
-```shell
-    mvn -pl site.ycsb:redis-binding -am clean package
-```
+    mvn -pl site.ycsb:kyotocabinet-binding -am clean package
 
-### 2. Run YCSB
+### Run YCSB
 
 Now you are ready to run! First, load the data:
 
-    ./bin/ycsb load rocksdb -s -P workloads/workloada -p rocksdb.dir=/tmp/ycsb-rocksdb-data
+    ./bin/ycsb load kyotocabinet -s -P workloads/workloada
 
 Then, run the workload:
 
-    ./bin/ycsb run rocksdb -s -P workloads/workloada -p rocksdb.dir=/tmp/ycsb-rocksdb-data
+    ./bin/ycsb run kyotocabinet -s -P workloads/workloada
 
-## RocksDB Configuration Parameters
+## Kyotocabinet Configuration Parameters
 
-* ```kyoto.dir``` - (required) A path to a folder to hold the Kyotocabinet data files.
-    * EX. ```/tmp/ycsb-rocksdb-data```
+* ```kc.dir``` - (required) A path to a folder to hold the Kyotocabinet data files.
+    * EX. ```/tmp/kc.kch```
+    * https://fallabs.com/kyotocabinet/javadoc/kyotocabinet/DB.html#open(java.lang.String,%20int)
+    for open(..) path parameter
 
-### 5. Load data and run tests
+### Load data and run tests
 
 Load the data:
 
