@@ -45,27 +45,21 @@ public class KyotocabinetDBClient extends DB {
   */
   private static final String PROPERTY_KYOTOCABINETDB_DIR = "kc.dir";
   private static final String PROPERTY_FIELDCOUNT = "fieldcount";
+  private static final String PROPERTY_FIELDLENGTH = "fieldlength";
   private static final String PROPERTY_READALLFIELDS = "readallfields";
 
   private static final String KYOTOCABINETDB_DIR_DEFULAT = "/tmp/kc.kch";
   private static final String FIELDCOUNT_DEFAULT = "10"; // YCSB default
+  private static final String FIELDLENGTH_DEFAULT = "100"; // YCSB default
   private static final String READALLFIELDS_DEFAULT = "true"; // YCSB default
 
   // configuration variables
   private static String kcDbDir = "/tmp/kc.kch";
-  private static int ycsbFieldcount = 1;
+  private static int ycsbFieldcount = 0, ycsbFieldlength = 0;
   private static boolean ycsbReadallfields = true;
 
   // internal variables
   private static kyotocabinet.DB kcDb = null;
-
-  String makeKey(String key, String field) {
-    if(ycsbReadallfields || ycsbFieldcount <= 1){
-      return key;
-    } else {
-      return key + field;
-    }
-  }
 
   @Override
   public void init() throws DBException {
@@ -75,11 +69,18 @@ public class KyotocabinetDBClient extends DB {
 
       kcDbDir = props.getProperty(PROPERTY_KYOTOCABINETDB_DIR, KYOTOCABINETDB_DIR_DEFULAT);
       ycsbFieldcount = Integer.parseInt(props.getProperty(PROPERTY_FIELDCOUNT, FIELDCOUNT_DEFAULT));
+      ycsbFieldlength = Integer.parseInt(props.getProperty(PROPERTY_FIELDLENGTH, FIELDLENGTH_DEFAULT));
       ycsbReadallfields = Boolean.parseBoolean(props.getProperty(PROPERTY_READALLFIELDS, READALLFIELDS_DEFAULT));
 
       System.err.printf("%s: %s\n", PROPERTY_KYOTOCABINETDB_DIR, kcDbDir);
       System.err.printf("%s: %d\n", PROPERTY_FIELDCOUNT, ycsbFieldcount);
+      System.err.printf("%s: %d\n", PROPERTY_FIELDLENGTH, ycsbFieldlength);
       System.err.printf("%s: %s\n", PROPERTY_READALLFIELDS, ycsbReadallfields);
+
+      if(!(ycsbReadallfields || ycsbFieldcount <= 1)) {
+        throw new IllegalArgumentException("Illegal options for kyotocabinet:" +
+          "(readallfields || ycsbFieldcount <= 1) should be true.");
+      }
 
       kcDb = new kyotocabinet.DB();
 
@@ -103,25 +104,18 @@ public class KyotocabinetDBClient extends DB {
   public Status read(final String table, final String key, final Set<String> fields,
       final Map<String, ByteIterator> result) {
     try {
+      assert(fields == null);
+    } catch (AssertionError ae) {
+      throw new IllegalArgumentException("read(..) null expected for `fields` parameter");
+    }
+
+    try {
       // ignore table. There is no table in KCDB
-      String value;
-      if(ycsbReadallfields || ycsbFieldcount <= 1) {
-        value = kcDb.get(key);
-        if(value == null) {
-          return Status.NOT_FOUND;
-        } else {
-          result.put(key, new StringByteIterator(value));
-        }
+      String value = kcDb.get(key);
+      if(value == null) {
+        return Status.NOT_FOUND;
       } else {
-        for (String field : fields) {
-          String kcKey = makeKey(key, field);
-          value = kcDb.get(kcKey);
-          if(value == null) {
-            return Status.NOT_FOUND;
-          } else {
-            result.put(key + field, new StringByteIterator(value));
-          }
-        }
+        result.put(key, new StringByteIterator(value));
       }
       return Status.OK;
     } catch(final kyotocabinet.Error e) {
@@ -144,15 +138,11 @@ public class KyotocabinetDBClient extends DB {
 
   @Override
   public Status insert(final String table, final String key, final Map<String, ByteIterator> values) {
-    // System.err.printf("# of values: %d\n", values.size());
     try {
-      String kcKey;
-      for (Map.Entry<String, ByteIterator> entry : values.entrySet()) {
-        kcKey = makeKey(key, entry.getKey());
-        if(!kcDb.set(kcKey, entry.getValue().toString())) {
-          System.err.printf("set error: %s - %s\n", kcDb.error().name(), kcDb.error());
-          throw new IllegalArgumentException();
-        }
+      String kcVal = values2value(values);
+      if(!kcDb.set(key, kcVal)) {
+        System.err.printf("set error: %s - %s\n", kcDb.error().name(), kcDb.error());
+        throw new IllegalArgumentException();
       }
       return Status.OK;
     } catch (Exception e){
@@ -164,5 +154,14 @@ public class KyotocabinetDBClient extends DB {
   @Override
   public Status delete(final String table, final String key) {
     throw new UnsupportedOperationException();
+  }
+
+  public String values2value(Map<String, ByteIterator> values) {
+    String value = "";
+    for(ByteIterator v : values.values()) {
+      value += v.toString();
+    }
+    assert(new StringByteIterator(value).bytesLeft() == ycsbFieldcount * ycsbFieldlength);
+    return value;
   }
 }

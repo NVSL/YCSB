@@ -32,9 +32,13 @@ def verify(workload):
     return True
 
 if __name__ == "__main__":
-    workloads = range(ord('f'), ord('g'))
+    workloads = range(ord('a'), ord('g'))
     for wkld in workloads:
-        print(chr(wkld))
+        if(wkld == ord('e')):
+            print("Passing workload e (scan)")
+            continue
+        print("Starting workload %c" % chr(wkld))
+        print(''.join(['-'] * 100))
         workload = "./workloads/workload" + chr(wkld)
         load(workload)
         assert(verify(workload + "_load.csv"))
