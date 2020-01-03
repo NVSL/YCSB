@@ -2,6 +2,10 @@
 import subprocess, shlex
 import pandas as pd
 
+REC_CNT = 10000000
+OP_CNT  = 10000000
+KC_DIR  = "/mnt/data/tmp.kch"
+
 # execute a shell command, blocking, printing output
 def shellcmd(cmdstr, stdout=subprocess.PIPE):
 	cmds = shlex.split(cmdstr)
@@ -10,14 +14,14 @@ def shellcmd(cmdstr, stdout=subprocess.PIPE):
 
 def load(workload):
     ofname=workload+"_load.csv"
-    cmd = "./bin/ycsb load kyotocabinet -s -P {wkld}".format(wkld=workload)
+    cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(wkld=workload, rec=REC_CNT, op=OP_CNT, kcdir=KC_DIR)
     print(cmd)
     with open(ofname, 'wb') as f:
         shellcmd(cmd, stdout=f)
 
 def run(workload):
     ofname=workload+"_run.csv"
-    cmd = "./bin/ycsb run kyotocabinet -s -P {wkld}".format(wkld=workload)
+    cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(wkld=workload, rec=REC_CNT, op=OP_CNT, kcdir=KC_DIR)
     print(cmd)
     with open(ofname, 'wb') as f:
         shellcmd(cmd, stdout=f)
@@ -32,7 +36,7 @@ def verify(workload):
     return True
 
 if __name__ == "__main__":
-    workloads = range(ord('a'), ord('g'))
+    workloads = range(ord('a'), ord('b'))
     for wkld in workloads:
         if(wkld == ord('e')):
             print("Passing workload e (scan)")
