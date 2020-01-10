@@ -77,8 +77,6 @@ def stats(workload):
 	df = pd.read_csv(workload, header=None)
 	df[0] = df[0].str.strip()
 	df[1] = df[1].str.strip()
-
-
 	return df
 
 if __name__ == "__main__":
@@ -88,6 +86,8 @@ if __name__ == "__main__":
 	okay = []
 	workloads = range(ord('a'), ord('g'))
 	df = []
+
+	result = {}
 	for wkld in workloads:
 		if(wkld == ord('e')):
 			print("Passing workload e (scan)")
@@ -110,26 +110,26 @@ if __name__ == "__main__":
 		okay.append(workload + "_run.csv")
 
 		df = stats(workload + "_run.csv")
-		break
+
+		operations = ['[READ]', '[INSERT]', '[CLEANUP]', '[UPDATE]', '[READ-MODIFY-WRITE]']
+		found_ops = pd.unique(df[0])
+		headers = ['Operations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
+
+		print(','.join(headers))
+		wkld_vals = {}
+		for op in operations:
+			if (op not in found_ops):
+				continue
+			op_vals = []
+			for head in headers:
+				op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
+			wkld_vals[op] = op_vals
+		result[wkld] = wkld_vals
 
 	print(''.join(['='] * 100))
 	print(args)
 	print("Fail: " + ','.join(fail))
 	print("Okay: " + ','.join(okay))
+	print(result)
 
-	operations = ['[READ]', '[CLEANUP]', '[UPDATE]']
-	headers = ['Operations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
-	result = {}
-
-	print(','.join(headers))
-	for op in operations:
-		op_vals = []
-		for head in headers:
-			op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
-		result[op] = op_vals
-
-		print("%10s" % (op), end="")
-		for opv in op_vals:
-			print("%7.2f," % (opv), end="")
-		print("")
 
