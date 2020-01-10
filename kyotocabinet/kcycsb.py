@@ -39,6 +39,21 @@ def save_ts(args, tsname):
 	ts_file="/proc/fs/NOVA/{dev}/timing_stats".format(dev=os.path.basename(args.dev))
 	shutil.copyfile(ts_file, tsname)
 
+def save_result(args, workload, headers, result, result_fname=None):
+	if(result_fname == None):
+		result_fname = "{}/{}.res".format(args.logdir, chr(workload))
+	print("Saving result to %s" % result_fname)
+	with open(result_fname, 'a') as f:
+		for head in headers:
+			f.write("%10s," % head[:10])
+		f.write("\n")
+		for k,v in result.items():
+			f.write("%10s," % k)
+			for vv in v:
+				f.write("%10.2f," % vv)
+			f.write("\b\n")
+	f.close()
+
 def timestamp():
 	return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
@@ -51,7 +66,7 @@ def load(args, workload):
 	cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir)
 	print(cmd)
-	with open(ofname, 'wb') as f:
+	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
 	save_ts(args, tsname)
 
@@ -61,8 +76,9 @@ def run(args, workload):
 	cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir)
 	print(cmd)
-	with open(ofname, 'wb') as f:
+	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
+	save_ts(args, tsname)
 
 def verify(workload):
 	df = pd.read_csv(workload, header=None)
@@ -111,25 +127,35 @@ if __name__ == "__main__":
 
 		df = stats(workload + "_run.csv")
 
-		operations = ['[READ]', '[INSERT]', '[CLEANUP]', '[UPDATE]', '[READ-MODIFY-WRITE]']
+		operations = ['[OVERALL]', '[READ]', '[INSERT]', '[CLEANUP]', '[UPDATE]', '[READ-MODIFY-WRITE]']
 		found_ops = pd.unique(df[0])
 		headers = ['Operations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
+		printable_headers = ['Operations', '#ofOperations' 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
+		overall_headers = ['RunTime(ms)', 'Throughput(ops/sec)']
 
 		print(','.join(headers))
 		wkld_vals = {}
+		wkld_overall = {}
 		for op in operations:
 			if (op not in found_ops):
 				continue
 			op_vals = []
-			for head in headers:
-				op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
-			wkld_vals[op] = op_vals
+			if (op == '[OVERALL]'):
+				for head in overall_headers:
+					print(df[(df[0] == op) & (df[1] == head)][2])
+					op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
+				wkld_overall[op] = op_vals
+			else:
+				for head in headers:
+					op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
+				wkld_vals[op] = op_vals
 		result[wkld] = wkld_vals
+
+		save_result(args, wkld, overall_headers, wkld_overall)
+		save_result(args, wkld, printable_headers, wkld_vals)
 
 	print(''.join(['='] * 100))
 	print(args)
 	print("Fail: " + ','.join(fail))
 	print("Okay: " + ','.join(okay))
-	print(result)
-
 
