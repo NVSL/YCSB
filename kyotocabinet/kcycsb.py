@@ -63,7 +63,7 @@ def create_logdir(args):
 	os.mkdir(args.logdir)
 
 def load(args, workload):
-	ofname=workload+"_load.csv"
+	ofname=  "{}/{}.csv".format(args.logdir, os.path.basename(workload + "_load"))
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_load"))
 	cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength)
@@ -73,7 +73,7 @@ def load(args, workload):
 	save_ts(args, tsname)
 
 def run(args, workload):
-	ofname=workload+"_run.csv"
+	ofname=  "{}/{}.csv".format(args.logdir, os.path.basename(workload + "_run"))
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_run"))
 	cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength)
