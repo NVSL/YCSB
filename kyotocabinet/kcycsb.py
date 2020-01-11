@@ -140,8 +140,8 @@ if __name__ == "__main__":
 		found_ops = pd.unique(df[0])
 		headers = ['Operations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
 		printable_headers = ['Operations', '#ofOperations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
-		overall_headers = ['RunTime(ms)', 'Throughput(ops/sec)']
-		printable_overall_headers = ['Overall', 'RunTime(ms)', 'Throughput(ops/sec)']
+		overall_headers = ['CreatePmemPool(ms)', 'RunTime(ms)', 'Throughput(ops/sec)']
+		printable_overall_headers = ['Overall', 'CreatePmemPool(ms)', 'RunTime(ms)', 'Throughput(ops/sec)']
 
 		wkld_vals = {}
 		wkld_overall = {}
