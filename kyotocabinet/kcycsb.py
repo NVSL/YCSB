@@ -71,6 +71,7 @@ def load(args, workload):
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
 	save_ts(args, tsname)
+	return ofname
 
 def run(args, workload):
 	ofname=  "{}/{}.csv".format(args.logdir, os.path.basename(workload + "_run"))
@@ -81,9 +82,10 @@ def run(args, workload):
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
 	save_ts(args, tsname)
+	return ofname
 
-def verify(workload):
-	df = pd.read_csv(workload, header=None)
+def verify(ofname):
+	df = pd.read_csv(ofname, header=None)
 	l = ["Return" in f for f in df.iloc[:,1]]
 	for ret in df.iloc[:,1][l]:
 		if(ret.strip() != "Return=OK"):
@@ -114,20 +116,20 @@ if __name__ == "__main__":
 		remount(args)
 		print(''.join(['-'] * 100))
 		workload = "./workloads/workload" + chr(wkld)
-		load(args, workload)
-		if(not verify(workload + "_load.csv")):
+		ofname = load(args, workload)
+		if(not verify(ofname)):
 			fail.append(workload + "_load.csv")
 			continue
 
-		run(args, workload)
-		if(not verify(workload + "_run.csv")):
+		ofname = run(args, workload)
+		if(not verify(ofname)):
 			fail.append(workload + "_run.csv")
 			continue
 
 		okay.append(workload + "_load.csv")
 		okay.append(workload + "_run.csv")
 
-		df = stats(workload + "_run.csv")
+		df = stats(ofname)
 
 		operations = ['[OVERALL]', '[READ]', '[INSERT]', '[CLEANUP]', '[UPDATE]', '[READ-MODIFY-WRITE]']
 		found_ops = pd.unique(df[0])
