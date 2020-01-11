@@ -69,7 +69,7 @@ def create_logdir(args):
 def load(args, workload):
 	ofname=  "{}/{}.csv".format(args.logdir, os.path.basename(workload + "_load"))
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_load"))
-	cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength} -p fieldcount={fieldcount}".format(
+	cmd = "numactl -N 0 -m 0 ./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength} -p fieldcount={fieldcount}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength, fieldcount=args.fieldcount)
 	print(cmd)
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
@@ -80,7 +80,7 @@ def load(args, workload):
 def run(args, workload):
 	ofname=  "{}/{}.csv".format(args.logdir, os.path.basename(workload + "_run"))
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_run"))
-	cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength} -p fieldcount={fieldcount}".format(
+	cmd = "numactl -N 0 -m 0 ./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength} -p fieldcount={fieldcount}".format(
 		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength, fieldcount=args.fieldcount)
 	print(cmd)
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
