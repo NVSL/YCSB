@@ -57,7 +57,8 @@ def save_result(args, workload, headers, result, result_fname=None):
 			f.write("%10s," % k)
 			for vv in v:
 				f.write("%10.2f," % vv)
-			f.write("\b\n")
+			f.write("\n")
+		f.write("\n")
 	f.close()
 
 def timestamp():
@@ -138,10 +139,10 @@ if __name__ == "__main__":
 		operations = ['[OVERALL]', '[READ]', '[INSERT]', '[CLEANUP]', '[UPDATE]', '[READ-MODIFY-WRITE]']
 		found_ops = pd.unique(df[0])
 		headers = ['Operations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
-		printable_headers = ['Operations', '#ofOperations' 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
+		printable_headers = ['Operations', '#ofOperations', 'MinLatency(us)', 'AverageLatency(us)', '95thPercentileLatency(us)', '99thPercentileLatency(us)', 'MaxLatency(us)']
 		overall_headers = ['RunTime(ms)', 'Throughput(ops/sec)']
+		printable_overall_headers = ['Overall', 'RunTime(ms)', 'Throughput(ops/sec)']
 
-		print(','.join(headers))
 		wkld_vals = {}
 		wkld_overall = {}
 		for op in operations:
@@ -150,7 +151,6 @@ if __name__ == "__main__":
 			op_vals = []
 			if (op == '[OVERALL]'):
 				for head in overall_headers:
-					print(df[(df[0] == op) & (df[1] == head)][2])
 					op_vals.append(float(df[(df[0] == op) & (df[1] == head)][2]))
 				wkld_overall[op] = op_vals
 			else:
@@ -159,11 +159,10 @@ if __name__ == "__main__":
 				wkld_vals[op] = op_vals
 		result[wkld] = wkld_vals
 
-		save_result(args, wkld, overall_headers, wkld_overall)
+		save_result(args, wkld, printable_overall_headers, wkld_overall)
 		save_result(args, wkld, printable_headers, wkld_vals)
 
 	print(''.join(['='] * 100))
 	print(args)
 	print("Fail: " + ','.join(fail))
 	print("Okay: " + ','.join(okay))
-
