@@ -20,6 +20,8 @@ def parse_arguments():
 						required=False, help="device name")
 	argparser.add_argument("--mnt", default="/mnt/ramdisk", dest="mnt",
 						required=False, help="mount location")
+	argparser.add_argument("--fieldlength", default=100, dest="fieldlength",
+						required=False, help="YCSB field length")
 	argparser.add_argument("--logdir", default=timestamp(), dest="logdir",
 						required=False, help="log file name")
 	return argparser.parse_args()
@@ -63,8 +65,8 @@ def create_logdir(args):
 def load(args, workload):
 	ofname=workload+"_load.csv"
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_load"))
-	cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(
-		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir)
+	cmd = "./bin/ycsb load kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength}".format(
+		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength)
 	print(cmd)
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
@@ -73,8 +75,8 @@ def load(args, workload):
 def run(args, workload):
 	ofname=workload+"_run.csv"
 	tsname = "{}/{}.ts".format(args.logdir, os.path.basename(workload + "_run"))
-	cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir}".format(
-		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir)
+	cmd = "./bin/ycsb run kyotocabinet -s -P {wkld} -p recordcount={rec} -p operationcount={op} -p kc.dir={kcdir} -p fieldlength={fieldlength}".format(
+		wkld=workload, rec=args.rec_cnt, op=args.op_cnt, kcdir=args.kcdir, fieldlength=args.fieldlength)
 	print(cmd)
 	with open("{}/{}".format(args.logdir, os.path.basename(ofname)), 'wb') as f:
 		shellcmd(cmd, stdout=f)
