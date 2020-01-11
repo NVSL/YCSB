@@ -84,10 +84,14 @@ public class KyotocabinetDBClient extends DB {
 
       kcDb = new kyotocabinet.DB();
 
+      long startTime = System.nanoTime();
       if (!kcDb.open(kcDbDir.toString(), OREADER | OWRITER | OCREATE)) {
         System.err.printf("open error: %s - %s\n", kcDb.error().name(), kcDb.error());
         throw new IllegalArgumentException();
       }
+      long endTime = System.nanoTime();
+      long timeElapsed = endTime - startTime;
+      System.out.println("[OVERALL], CreatePmemPool(ms), " + timeElapsed / 1000000);
     }
   }
 
