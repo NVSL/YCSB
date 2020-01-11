@@ -22,6 +22,8 @@ def parse_arguments():
 						required=False, help="mount location")
 	argparser.add_argument("--fieldlength", default=100, dest="fieldlength",
 						required=False, help="YCSB field length")
+	argparser.add_argument("--fieldcount", default=10, dest="fieldcount",
+						required=False, help="YCSB field count")
 	argparser.add_argument("--logdir", default=timestamp(), dest="logdir",
 						required=False, help="log file name")
 	return argparser.parse_args()
@@ -46,8 +48,10 @@ def save_result(args, workload, headers, result, result_fname=None):
 		result_fname = "{}/{}.res".format(args.logdir, chr(workload))
 	print("Saving result to %s" % result_fname)
 	with open(result_fname, 'a') as f:
+		f.write(str(args))
+		f.write("\n")
 		for head in headers:
-			f.write("%10s," % head[:10])
+			f.write("%10s," % head[:3])
 		f.write("\n")
 		for k,v in result.items():
 			f.write("%10s," % k)
@@ -104,7 +108,7 @@ if __name__ == "__main__":
 	create_logdir(args)
 	fail = []
 	okay = []
-	workloads = range(ord('a'), ord('g'))
+	workloads = [ord(x) for x in ['a', 'f']]
 	df = []
 
 	result = {}
